@@ -4,7 +4,7 @@
 #include <time.h>
 
 /***Subroutine prototypes***/
-void get_user_input();
+int get_user_input();
 void clear_screen();
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int color);
@@ -17,6 +17,7 @@ int main(void) {
   bool game_over = false;
   bool win_lose = false; // true for win, false for lose
   int highest_num = 1;
+  int direction; //3 for up, 2 for down, 1 for left, 0 for right
   
   srand(time(NULL));  
   
@@ -36,7 +37,6 @@ int main(void) {
   // swap BackBuffer and Buffer
   wait_for_vsync();
   *(pixel_ctrl_ptr + 1) = 0xC0000000;
-  
   pixel_buffer_start = *(pixel_ctrl_ptr + 1); // draw on BackBuffer
 
   // game loop
@@ -44,7 +44,7 @@ int main(void) {
     // randomly generate blocks
 
     // get user input
-    get_user_input();
+    direction = get_user_input();
 
     // move blocks
 
@@ -68,8 +68,34 @@ int main(void) {
 }
 
 // poll for user input on KEY3-0
-void get_user_input() {
-  
+int get_user_input() {
+  volatile int *key_ptr = 0xff200050;
+  volatile int *key_edge = 0xff20005c;
+
+  int key = *key_ptr & 0x15;
+  int edge = *key_edge;
+  //check if key is pressed 
+  while (key == 0){
+     key = *key_ptr;
+  }
+  //wait for key to be released  
+  while(edge != 0){
+    *key_edge = edge;
+    edge = *key_edge;
+  }
+
+  if (key == 1) {
+    return 0;
+  } else if(key ==  2){
+    return 1;
+  }else if(key == 4){
+   return 2;
+  }else if(key == 8){
+   return 3;
+  }
+  else{
+    return 0;
+  }
 }
 
 // clear the drawing on the screen
