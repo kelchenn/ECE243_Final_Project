@@ -9,9 +9,19 @@ void clear_screen();
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int color);
 void generate_blocks();
+void move_blocks(int dir);
+void merge(int dir, int highest_num);
 
 /***Global variables***/
 int pixel_buffer_start;
+
+// initialize the board
+int board [4][4] = {{0, 0, 0, 0},
+                    {0, 0, 0, 0},
+                    {0, 0, 0, 0},
+                    {0, 0, 0, 0}};
+
+int zeros[16][2];
 
 int main(void) {
   bool game_over = false;
@@ -21,15 +31,8 @@ int main(void) {
   
   srand(time(NULL));  
   
-  int random_num = rand() % 5; // generate a random number from 0-4
-  
   volatile int *pixel_ctrl_ptr = (int *) 0xFF203020; // DMA
 
-  // initialize the board
-  int board [4][4] = {{0, 0, 0, 0},
-                      {0, 0, 0, 0},
-                      {0, 0, 0, 0},
-                      {0, 0, 0, 0}};
   *(pixel_ctrl_ptr + 1) = 0xC8000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);
   clear_screen();
@@ -42,13 +45,16 @@ int main(void) {
   // game loop
   while (!game_over) {
     // randomly generate blocks
+    generate_blocks(highest_num);
 
     // get user input
     direction = get_user_input();
 
     // move blocks
+    move_blocks(direction);
 
     // merge blocks
+    merge(direction, highest_num);
   
   }
 
@@ -127,27 +133,133 @@ void wait_for_vsync() {
   }
 }
 
-int** check_zeros() {
+int check_zeros() {
+
+    int counter = 0;
     
+    // make an array with the x, y positions of the zeros
+    for (int i = 0 ; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (board[i][j] == 0) {
+                zeros[counter][0] = i;
+                zeros[counter][1] = j;
+                counter++;
+            }
+        }
+    }
+    
+   return counter;
 }
 
 // randomly generate blocks
 void generate_blocks(int highest) {
     
     // check where there are zeros
-    
-    // make an array with the x, y positions of the zeros
-    
+    int count = check_zeros();
+
     // randomly generate a number to index the array
+    int random_one = 0; 
+    int random_two = 0; 
     
-    // only generate 1's
-    if (highest < 16) {
+    // start of the game, generate 2 1 blocks
+    if (highest == 1) {
+        while (random_one == random_two) {
+            // generate a random number from 0 to count - 1
+            random_one = rand() % count; 
+            random_two = rand() % count;
+        }
         
+        board[zeros[random_one][0]][zeros[random_one][1]] = 1;
+        board[zeros[random_two][0]][zeros[random_two][1]] = 1;
     } 
-    // generate 1's or 2's
-    else if (highest < 64) {
+    // generate 1 block of 1 or 2
+    else {
         
+        // generate a random number from 1 - 2
+        random_one = rand() % (2 - 1) + 1; 
+        
+        // generate a random number from 0 to count - 1
+        random_two = rand() % count;
+        
+        board[zeros[random_two][0]][zeros[random_two][1]] = random_one;
     } 
+}
+
+void move_blocks(int dir) {
+    
+    int move_x;
+    int move_y;
+    
+    // move right
+    if (dir == 0) {
+        move_x = 1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row + move_y][col + move_x] == 0) {
+                        board[row + move_y][col + move_x] = board[row][col];
+                        board[row][col] = 0;
+                    }
+                }
+            }
+        }
+  
+    } 
+    // move left
+    else if (dir == 1) {
+        move_x = -1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 3; col >= 0; col --) {
+                if (board[row][col] != 0) {
+                    if (board[row + move_y][col + move_x] == 0) {
+                        board[row + move_y][col + move_x] = board[row][col];
+                        board[row][col] = 0;
+                    }
+                }
+            }
+        }
+    } 
+    // move down
+    else if (dir == 2) {
+        move_x = 0;
+        move_y = 1;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row + move_y][col + move_x] == 0) {
+                        board[row + move_y][col + move_x] = board[row][col];
+                        board[row][col] = 0;
+                    }
+                }
+            }
+        }
+    } 
+    // move up
+    else {
+        move_x = 0;
+        move_y = -1;
+        
+        for (int row = 3; row >= 0; row --) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row + move_y][col + move_x] == 0) {
+                        board[row + move_y][col + move_x] = board[row][col];
+                        board[row][col] = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void merge(int dir, int highest) {
+    // check if next block is the same number, if it is merge
+    // check if merged number is larger than highest number
 }
 
 
