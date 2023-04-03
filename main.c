@@ -1,18 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <time.h>
 
 /***Subroutine prototypes***/
 void get_user_input();
 void clear_screen();
 void wait_for_vsync();
 void plot_pixel(int x, int y, short int color);
+void generate_blocks();
 
 /***Global variables***/
 int pixel_buffer_start;
 
 int main(void) {
   bool game_over = false;
+  bool win_lose = false; // true for win, false for lose
+  int highest_num = 1;
+  
+  srand(time(NULL));  
+  
+  int random_num = rand() % 5; // generate a random number from 0-4
   
   volatile int *pixel_ctrl_ptr = (int *) 0xFF203020; // DMA
 
@@ -45,7 +53,14 @@ int main(void) {
   }
 
   // end of game
+  
   // win or lose
+  if (win_lose) {
+      
+  } else {
+      
+  }
+  
   // print play time (timer)
     
   printf("%d ", board[0][0]);
@@ -84,6 +99,29 @@ void wait_for_vsync() {
   while ((status & 0x01) != 0) {
     status = *(pixel_ctrl_ptr + 3); 
   }
+}
+
+int** check_zeros() {
+    
+}
+
+// randomly generate blocks
+void generate_blocks(int highest) {
+    
+    // check where there are zeros
+    
+    // make an array with the x, y positions of the zeros
+    
+    // randomly generate a number to index the array
+    
+    // only generate 1's
+    if (highest < 16) {
+        
+    } 
+    // generate 1's or 2's
+    else if (highest < 64) {
+        
+    } 
 }
 
 
