@@ -2,6 +2,18 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+	
+/* VGA colors */
+#define WHITE 0xFFFF
+#define YELLOW 0xFFE0
+#define RED 0xF800
+#define GREEN 0x07E0
+#define BLUE 0x001F
+#define CYAN 0x07FF
+#define MAGENTA 0xF81F
+#define GREY 0xC618
+#define PINK 0xFC18
+#define ORANGE 0xFC00
 
 /***Subroutine prototypes***/
 int get_user_input();
@@ -11,6 +23,10 @@ void plot_pixel(int x, int y, short int color);
 void generate_blocks();
 void move_blocks(int dir);
 void merge(int dir, int highest_num);
+void draw_box(int xidx,int yidx, short int color, int size);
+void draw_board();
+void draw_line_horizontal(int xidx,int yidx, short int color, int size);
+void draw_line_vertical(int xidx,int yidx, short int color, int size);
 
 /***Global variables***/
 int pixel_buffer_start;
@@ -20,6 +36,8 @@ int board [4][4] = {{0, 0, 0, 0},
                     {0, 0, 0, 0},
                     {0, 0, 0, 0},
                     {0, 0, 0, 0}};
+
+/** 1024 title name*/
 
 int zeros[16][2];
 
@@ -36,11 +54,18 @@ int main(void) {
   *(pixel_ctrl_ptr + 1) = 0xC8000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);
   clear_screen();
+	
+
 
   // swap BackBuffer and Buffer
   wait_for_vsync();
   *(pixel_ctrl_ptr + 1) = 0xC0000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1); // draw on BackBuffer
+  clear_screen();
+	
+  wait_for_vsync();
+  
+	draw_board();
 
   // game loop
   while (!game_over) {
@@ -75,8 +100,8 @@ int main(void) {
 
 // poll for user input on KEY3-0
 int get_user_input() {
-  volatile int *key_ptr = 0xff200050;
-  volatile int *key_edge = 0xff20005c;
+  volatile int *key_ptr = (int *)0xff200050;
+  volatile int *key_edge =  (int *)0xff20005c;
 
   int key = *key_ptr & 0x15;
   int edge = *key_edge;
@@ -114,6 +139,7 @@ void clear_screen() {
     }
   }
 }
+
 
 void plot_pixel(int x, int y, short int color) {
   *(short int *)(pixel_buffer_start + (y << 10) + (x << 1)) = color;
@@ -262,4 +288,46 @@ void merge(int dir, int highest) {
     // check if merged number is larger than highest number
 }
 
+//draw the box 
+void draw_box(int xidx,int yidx, short int color, int size){
+	int i, j;
+	for(i = xidx; i<(xidx+ size);i++){ // need to check in the pixel space
+		for(j = yidx; j<(yidx+ size);j++){
+		 	plot_pixel(i, j, color);
+		}
+	}
+}
 
+void draw_board(){
+	//draw the box 
+	draw_box(70, 50, GREY, 180);
+	
+	//draw the verical lines 
+	draw_line_vertical(115, 50, 0, 5);
+	draw_line_vertical(160, 50, 0, 5);
+	draw_line_vertical(205, 50, 0, 5);
+	
+	//draw horizontal lines 
+	draw_line_horizontal(70, 95, 0, 5);
+	draw_line_horizontal(70, 140, 0, 5);
+	draw_line_horizontal(70, 185, 0, 5);
+	
+}
+
+void draw_line_vertical(int xidx,int yidx, short int color, int size){
+	int j;
+
+	for(j = yidx; j<(yidx+180);j+= size){
+		draw_box(xidx, j, color, size);
+	}
+}
+
+void draw_line_horizontal(int xidx,int yidx, short int color, int size){
+	int i;
+
+	for(i = xidx; i<(xidx+180);i+= size){
+		draw_box(i, yidx, color, size);
+	}
+}
+
+	
