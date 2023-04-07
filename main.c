@@ -30,6 +30,7 @@ void draw_line_vertical(int xidx,int yidx, short int color, int size);
 void draw_instructions();
 void draw_end();
 void wait_for_press();
+bool check_game_over();
 
 /***Global variables***/
 int pixel_buffer_start;
@@ -605,6 +606,9 @@ int main(void) {
     // randomly generate blocks
     generate_blocks(highest_num);
 
+    // check if the game is over
+    check_game_over();
+
     // get user input
     direction = get_user_input();
 
@@ -613,7 +617,6 @@ int main(void) {
 
     // merge blocks
     merge(direction, highest_num);
-  
   }
 
   // end of game
@@ -632,6 +635,36 @@ int main(void) {
   draw_end();
 	
   return 0;
+}
+
+bool check_game_over() {
+  // check if the board has any empty spots -> game over is false
+  // check if there are any adjacent same numbers -> game over is false
+  // otherwise game over is true
+
+  for (int i = 0 ; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      
+      if (board[i][j] == 0) {
+          return false;
+      } 
+
+      if (j < 3) {
+        if (board[i][j] == board[i][j+1]) {
+          return false;
+        }
+      }
+
+      if (i < 3) {
+        if (board[i][j] == board[i+1][j]) {
+          return false;
+        }
+      }
+
+    }
+  }
+
+  return true;
 }
 
 // poll for user input on KEY3-0
