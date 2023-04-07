@@ -607,7 +607,12 @@ int main(void) {
     generate_blocks(highest_num);
 
     // check if the game is over
-    check_game_over();
+    game_over = check_game_over();
+
+    if (game_over) {
+      win_lose = false;
+      continue;
+    }
 
     // get user input
     direction = get_user_input();
@@ -617,16 +622,16 @@ int main(void) {
 
     // merge blocks
     merge(direction, highest_num);
+
+    if (highest_num == 1024) {
+      game_over = true;
+      win_lose = true;
+    } 
   }
 
   // end of game
   
-  // win or lose
-  if (win_lose) {
-      
-  } else {
-      
-  }
+  // win or lose -> change message on end board
   
   // print play time (timer)
     
@@ -644,7 +649,7 @@ bool check_game_over() {
 
   for (int i = 0 ; i < 4; i++) {
     for (int j = 0; j < 4; j++) {
-      
+
       if (board[i][j] == 0) {
           return false;
       } 
