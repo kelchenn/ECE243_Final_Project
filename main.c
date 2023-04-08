@@ -31,6 +31,9 @@ void draw_instructions();
 void draw_end();
 void wait_for_press();
 void move_animate(int xold, int yold, int xnew, int ynew, int num); // x is column y is row
+void draw_board_change();
+void draw_blocks(int yStart, int xStart, int num);
+
 
 /***Global variables***/
 int pixel_buffer_start;
@@ -1306,91 +1309,6 @@ void move_blocks(int dir) {
 void merge(int dir, int highest) {
     // check if next block is the same number, if it is merge
     // check if merged number is larger than highest number
-
-    int move_x;
-    int move_y;
-    
-    // move right
-    if (dir == 0) {
-        move_x = 1;
-        move_y = 0;
-        
-        for (int row = 0; row < 4; row ++) {
-            for (int col = 0; col < 4; col ++) {
-                if (board[row][col] != 0) {
-                    if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
-                    }
-                }
-            }
-        }
-  
-    } 
-    // move left
-    else if (dir == 1) {
-        move_x = -1;
-        move_y = 0;
-        
-        for (int row = 0; row < 4; row ++) {
-            for (int col = 3; col >= 0; col --) {
-                if (board[row][col] != 0) {
-                    if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
-                    }
-                }
-            }
-        }
-    } 
-    // move down
-    else if (dir == 2) {
-        move_x = 0;
-        move_y = 1;
-        
-        for (int row = 0; row < 4; row ++) {
-            for (int col = 0; col < 4; col ++) {
-                if (board[row][col] != 0) {
-                    if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
-                    }
-                }
-            }
-        }
-    } 
-    // move up
-    else {
-        move_x = 0;
-        move_y = -1;
-        
-        for (int row = 3; row >= 0; row --) {
-            for (int col = 0; col < 4; col ++) {
-                if (board[row][col] != 0) {
-                    if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
-                    }
-                }
-            }
-        }
-    }
 }
 
 //draw the box 
@@ -1443,7 +1361,7 @@ void draw_board(){
 			
 		}
 	}
-
+    
 }
 
 void draw_line_vertical(int xidx,int yidx, short int color, int size){
@@ -1528,15 +1446,19 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 	//get starting position for x 
 	if(xold == 0){
 		xStart = x0;
+		xold = x0;
 	}
 	else if(xold == 1){
 		xStart = x1;
+		xold = x1;
 	}
 	else if(xold == 2){
 		xStart = x2;
+		xold = x2;
 	}
 	else if(xold == 3){
 		xStart = x3;
+		xold = x3;
 	}
 	else{
 		xEnd = xStart;
@@ -1562,15 +1484,19 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 	//get starting position for y 
 	if(yold == 0){
 		yStart = y0;
+	    yold = y0;
 	}
 	else if(yold == 1){
 		yStart = y1;
+	    yold = y1;
 	}
 	else if(yold == 2){
 		yStart = y2;
+		yold = y2;
 	}
 	else if(yold == 3){
 		yStart = y3;
+		yold = y3;
 	}
 	else{
 		yEnd = yStart;
@@ -1582,6 +1508,7 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 	}
 	else if(ynew == 1){
 		yEnd  = y1;
+	
 	}
 	else if(ynew == 2){
 		yEnd = y2;
@@ -1598,29 +1525,29 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 		
 		
 		if(yStart>yEnd){
-			yStart = yStart - 1;
+			yStart = yStart - 5;
 		}
 		else if(yStart<yEnd){
-			yStart = yStart + 1;
+			yStart = yStart + 5;
 		}
 		if(xStart>xEnd){
-			xStart = xStart - 1;
+			xStart = xStart - 5;
 		}
 		else if(xStart<xEnd){
-			xStart = xStart + 1;
+			xStart = xStart + 5;
 		}
 		
 		if(xStart == xEnd){
 			if(yStart<=yEnd){
-				for(int j = 50; j<(yStart);j++){
-					for(int i = 70; i<(175 +70);i++){
+				for(int j = yold; j<(yStart);j++){
+					for(int i = xStart; i<(xStart+40);i++){
 						plot_pixel(i, j, boardColour[i-70][j-50]);
 					}
 				}
 			}
 			if (yStart >= yEnd){
-				for(int j = (175+50) ; j>(yStart+40);j--){
-					for(int i = 70; i<(175 +70);i++){
+				for(int j = (yold+40) ; j>(yStart+40);j--){
+					for(int i = xStart; i<(xStart+40);i++){
 						plot_pixel(i, j, boardColour[i-70][j-50]);
 					}
 				}
@@ -1628,15 +1555,15 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 		}
 		else if(yStart == yEnd){
 			if(xStart<=xEnd){
-				for(int j = 50; j<(175+50);j++){
-					for(int i = 70; i<(xStart);i++){
+				for(int j = yold; j<(yold+40);j++){
+					for(int i = xold; i<(xStart);i++){
 						plot_pixel(i, j, boardColour[i-70][j-50]);
 					}
 				}
 			}
 			if(xStart>=xEnd){
-				for(int j = 50; j<(175+50);j++){
-					for(int i =(70+175); i>(xStart+40);i--){
+				for(int j = yStart; j<(yStart+40);j++){
+					for(int i =(xold+40); i>(xStart+40);i--){
 						plot_pixel(i, j, boardColour[i-70][j-50]);
 					}
 				}
@@ -1644,7 +1571,66 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 			
 		}	
 		
-		int boxIndex = 0;
+		draw_blocks(yStart, xStart, num);
+	}
+	
+    //draw the verical lines 
+	draw_line_vertical(110, 50, 0, 5);
+	draw_line_vertical(155, 50, 0, 5);
+	draw_line_vertical(200, 50, 0, 5);
+	
+	//draw horizontal lines 
+	draw_line_horizontal(70, 90, 0, 5);
+	draw_line_horizontal(70, 135, 0, 5);
+	draw_line_horizontal(70, 180, 0, 5);
+	
+}
+
+void draw_board_change(){
+	int xpos, ypos;
+	//draw the board just greybackground
+	for(int j = y0; j<(y0+175);j++){
+	    for(int i = x0; i<(x0+175);i++){
+			plot_pixel(i, j, boardColour[i-70][j-50]);
+		}
+	}
+	
+	//find position for the blocks and draw the blocks 
+	for(int i =0;i<4; i++){
+		for(int j= 0; j<4; j++){
+			int num = board[i][j];
+			if(i == 0){
+				ypos = y0;
+			}
+			else if(i == 1){
+				ypos = y1;
+			}
+			else if(i == 2){
+				ypos = y2;
+			}
+			else if(i == 3){
+				ypos = y3;
+			}
+			
+		    if(j == 0){
+				xpos = x0;
+			}
+			else if(j == 1){
+				xpos = x1;
+			}
+			else if(j == 2){
+				xpos = x2;
+			}
+			else if(j == 3){
+				xpos = x3;
+			}
+			draw_blocks(ypos,xpos, num);
+		}
+	}
+}
+
+void draw_blocks(int yStart, int xStart, int num){
+	int boxIndex = 0;
 		if(num == 1){
 			for(int y = yStart; y<(yStart+40); y++){
 				for( int x = xStart; x<(xStart+40); x++){
@@ -1736,6 +1722,4 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 			}
 		}
 		
-	}
-	
 }
