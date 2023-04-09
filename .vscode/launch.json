@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Kevin/Documents/GitHub/ECE243_Final_Project",
-      "program": "c:/Users/Kevin/Documents/GitHub/ECE243_Final_Project/build/Debug/outDebug",
+      "cwd": "c:/Users/favou/OneDrive/Documents/GitHub/ECE243_Final_Project",
+      "program": "c:/Users/favou/OneDrive/Documents/GitHub/ECE243_Final_Project/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
