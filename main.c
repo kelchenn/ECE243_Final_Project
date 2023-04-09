@@ -1762,19 +1762,26 @@ int get_user_input() {
    		byte3 = PS2_data & 0xFF;
    	}
    	
+    // up
     if ( (byte2 == 0xf0) && (byte3 == 0x75) ) {
       valid_input = true;
-   		return 0;
-   	} else if ( (byte2 == 0xf0) && (byte3 == 0x72) ) {
-      valid_input = true;
-   		return 1;
-   	} else if ( (byte2 == 0xf0) && (byte3 == 0x6b) ) {
+   		return 3;
+   	} 
+    // down
+    else if ( (byte2 == 0xf0) && (byte3 == 0x72) ) {
       valid_input = true;
    		return 2;
-   	} else if ( (byte2 == 0xf0) && (byte3 == 0x74) ) {
+   	} 
+    // left
+    else if ( (byte2 == 0xf0) && (byte3 == 0x6b) ) {
       valid_input = true;
-   		return 3;
-   	}
+   		return 1;
+   	} 
+    // right
+    else if ( (byte2 == 0xf0) && (byte3 == 0x74) ) {
+      valid_input = true;
+   		return 0;
+   	} 
   }
 }
 
