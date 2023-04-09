@@ -54,6 +54,7 @@ void enable_A9_interrupts(void);
 /***Global variables***/
 int pixel_buffer_start;
 int timer = 0;
+bool playing_now = false;
 
 // initialize the board
 int board [4][4] = {{0, 0, 0, 0},
@@ -210,16 +211,16 @@ short int timer_hex[4] = {0x0, 0x0, 0x0, 0x0};
 void timer_ISR(void)
 {
 
-	timer++;
-
-	/* timer base address */
-	volatile int *timer_ptr = (int *)0xFFFEC600;
+  /* timer base address */
 	volatile int *f_ptr = (int *)0xFFFEC60C;
     
 	volatile int *LEDR_ptr = (int *)0xFF200000;
     
 	int f = *f_ptr;
-    *f_ptr = f;
+  *f_ptr = f;
+
+if (playing_now) {
+  timer++;
 
 	*LEDR_ptr = timer;
 
@@ -229,7 +230,7 @@ void timer_ISR(void)
 	int remainder;
 	int digit_count = 0;
     
-    int num = time;
+  int num = timer;
 
 	while (num != 0) {
  	 
@@ -243,20 +244,21 @@ void timer_ISR(void)
 	}
 
 	for (int j = digit_count; j > -1; j--) {
-  	  timer_hex[j] = bit_codes[timer_nums[j]];
+  	timer_hex[j] = bit_codes[timer_nums[j]];
 	}
 
 	int pattern = 0;
 
 	for (int j = 4; j >-1; j--) {
-  		 pattern = pattern | (timer_hex[j]);
-  	 
-  		 if (j > 0) {
-  			 pattern = pattern << 8;
-  		 }
-  	 }
+    pattern = pattern | (timer_hex[j]);
+  
+    if (j > 0) {
+      pattern = pattern << 8;
+    }
+  }
     
-  	 *HEX3_HEX0_ptr = pattern;
+  *HEX3_HEX0_ptr = pattern;
+}
 
 	return;
 }
@@ -1786,6 +1788,11 @@ int main(void) {
 
   while (1) {
 
+    playing_now = false;
+    timer = 0;
+    *HEX_3_0 = 0;
+    *HEX_4_5 = 0;
+
     for (int i = 0; i < 4; i++) {
       for (int j = 0; j < 4; j++) {
         board[i][j] = 0;
@@ -1811,6 +1818,7 @@ int main(void) {
     // game loop
     while (!game_over) {
       move_count = 0;
+      playing_now = true;
 
       // randomly generate blocks
       generate_blocks();
@@ -1851,6 +1859,7 @@ int main(void) {
     }
 
     // end of game
+    playing_now = false;
     
     // win or lose -> change message on end board
     
