@@ -1601,11 +1601,8 @@ int main(void) {
       move_count = 0;
 
       // merge blocks
-      while (move_count < 3) {
-        merge(direction);
-        move_count ++;
-      }
-
+      merge(direction);
+        
       // move blocks
       move_count = 0;
       while (move_count < 3) {
