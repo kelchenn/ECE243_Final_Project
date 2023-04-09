@@ -19,6 +19,11 @@
 const short int bit_codes[10] = {0x3f, 0x6, 0x5b, 0x4f, 
 							   0x66, 0x6d, 0x7d, 0x7, 0x7f, 0x67};
 
+short int message[22] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x6d, 0x39, 
+							   0x3f, 0x50, 0x79, 0x0,
+							   0x3f, 0x3f, 0x3f, 0x3f, 
+							   0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+
 int digits[4] = {0, 0, 0, 0};
 
 /***Subroutine prototypes***/
@@ -1066,14 +1071,19 @@ int main(void) {
   int direction; //3 for up, 2 for down, 1 for left, 0 for right
   int move_count = 0;
   int pattern = 0;
+  int pattern2 = 0;
   int remainder;
   int digit_count = 0;
+  int delay;
+	int counter;
+	int shift = 0;
   
   srand(time(NULL));  
   
   volatile int *pixel_ctrl_ptr = (int *) 0xFF203020; // DMA
 
   volatile int *HEX_3_0 = 0xFF200020; // HEX3-0
+  volatile int *HEX_4_5 = 0xFF200030; // HEX4-5
 
   *(pixel_ctrl_ptr + 1) = 0xC8000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);
@@ -1163,15 +1173,52 @@ int main(void) {
   }
 
   for (int j = digit_count - 1; j > -1; j--) {
-		pattern = pattern | bit_codes[digits[j]];
-		
-		if (j > 0) {
-			pattern = pattern << 8;
-		}
+		message[15-j] = bit_codes[digits[j]];
 	}
 	
-  // show score on HEX display
-	*HEX_3_0 = pattern;
+  // display scrolling message for score on HEX displays
+  while (1) {
+		counter = 16;
+		shift = 0;
+		
+		pattern = 0;
+		pattern2 = 0;
+		
+		while (counter > 0) {
+			pattern = 0;
+			pattern2 = 0;
+			
+			for (int j = 2; j < 6; j++) {
+				pattern = pattern | (message[j + shift]);
+		
+				if (j < 5) {
+					pattern = pattern << 8;
+				}
+			}
+	
+			*HEX_3_0 = pattern;
+	
+			for (int j = 0; j < 2; j++) {
+				pattern2 = pattern2 | (message[j + shift]);
+		
+				if (j < 1) {
+					pattern2 = pattern2 << 8;
+				}
+			}
+	
+	
+			*HEX_4_5 = pattern2;
+			
+			delay = 800000;
+		
+			while (delay > 0) {
+				delay = delay-1;
+			}
+		
+			shift = shift + 1;
+			counter = counter - 1;
+		}
+	}
 
   return 0;
 }
