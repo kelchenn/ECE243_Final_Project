@@ -1058,6 +1058,7 @@ int main(void) {
   bool win_lose = false; // true for win, false for lose
   int highest_num = 1;
   int direction; //3 for up, 2 for down, 1 for left, 0 for right
+  int move_count = 0;
   
   srand(time(NULL));  
   
@@ -1090,6 +1091,8 @@ int main(void) {
 
   // game loop
   while (!game_over) {
+    move_count = 0;
+
     // randomly generate blocks
     generate_blocks(highest_num);
 
@@ -1105,10 +1108,25 @@ int main(void) {
     direction = get_user_input();
 
     // move blocks
-    move_blocks(direction);
+    while (move_count < 3) {
+      move_blocks(direction);
+      move_count ++;
+    }
+
+    move_count = 0;
 
     // merge blocks
-    merge(direction, highest_num);
+    while (move_count < 3) {
+      merge(direction, highest_num);
+      move_count ++;
+    }
+
+    // move blocks
+    move_count = 0;
+    while (move_count < 3) {
+      move_blocks(direction);
+      move_count ++;
+    }
 
     if (highest_num == 1024) {
       game_over = true;
@@ -1122,7 +1140,7 @@ int main(void) {
   
   // print play time (timer)
   draw_end();  
-  
+
   return 0;
 }
 
@@ -1281,7 +1299,7 @@ void move_blocks(int dir) {
         move_y = 0;
         
         for (int row = 0; row < 4; row ++) {
-            for (int col = 0; col < 4; col ++) {
+            for (int col = 0; col < 3; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
                         board[row + move_y][col + move_x] = board[row][col];
@@ -1298,7 +1316,7 @@ void move_blocks(int dir) {
         move_y = 0;
         
         for (int row = 0; row < 4; row ++) {
-            for (int col = 3; col >= 0; col --) {
+            for (int col = 3; col > 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
                         board[row + move_y][col + move_x] = board[row][col];
@@ -1313,7 +1331,7 @@ void move_blocks(int dir) {
         move_x = 0;
         move_y = 1;
         
-        for (int row = 0; row < 4; row ++) {
+        for (int row = 0; row < 3; row ++) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
@@ -1329,7 +1347,7 @@ void move_blocks(int dir) {
         move_x = 0;
         move_y = -1;
         
-        for (int row = 3; row >= 0; row --) {
+        for (int row = 3; row > 0; row --) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
@@ -1351,27 +1369,6 @@ void merge(int dir, int highest) {
     
     // move right
     if (dir == 0) {
-        move_x = 1;
-        move_y = 0;
-        
-        for (int row = 0; row < 4; row ++) {
-            for (int col = 0; col < 4; col ++) {
-                if (board[row][col] != 0) {
-                    if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
-                    }
-                }
-            }
-        }
-  
-    } 
-    // move left
-    else if (dir == 1) {
         move_x = -1;
         move_y = 0;
         
@@ -1389,13 +1386,34 @@ void merge(int dir, int highest) {
                 }
             }
         }
+  
+    } 
+    // move left
+    else if (dir == 1) {
+        move_x = 1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 3; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
     } 
     // move down
     else if (dir == 2) {
         move_x = 0;
-        move_y = 1;
+        move_y = -1;
         
-        for (int row = 0; row < 4; row ++) {
+        for (int row = 3; row > 0; row --) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
@@ -1413,18 +1431,14 @@ void merge(int dir, int highest) {
     // move up
     else {
         move_x = 0;
-        move_y = -1;
+        move_y = 1;
         
-        for (int row = 3; row >= 0; row --) {
+        for (int row = 0; row < 3; row ++) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
-
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
-                      }
+                      board[row][col] = board[row + move_y][col + move_x]*2;
+                      board[row + move_y][col + move_x] = 0;
                     }
                 }
             }
