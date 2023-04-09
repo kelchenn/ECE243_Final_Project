@@ -1122,8 +1122,7 @@ int main(void) {
   
   // print play time (timer)
   draw_end();  
-  printf("%d ", board[0][0]);
-	
+  
   return 0;
 }
 
@@ -1346,6 +1345,91 @@ void move_blocks(int dir) {
 void merge(int dir, int highest) {
     // check if next block is the same number, if it is merge
     // check if merged number is larger than highest number
+
+    int move_x;
+    int move_y;
+    
+    // move right
+    if (dir == 0) {
+        move_x = 1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+  
+    } 
+    // move left
+    else if (dir == 1) {
+        move_x = -1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 3; col >= 0; col --) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+    } 
+    // move down
+    else if (dir == 2) {
+        move_x = 0;
+        move_y = 1;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+    } 
+    // move up
+    else {
+        move_x = 0;
+        move_y = -1;
+        
+        for (int row = 3; row >= 0; row --) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+    }
 }
 
 //draw the box 
