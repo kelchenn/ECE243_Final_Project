@@ -1963,8 +1963,8 @@ void merge(int dir, int highest) {
             for (int col = 3; col >= 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
+                      board[row][col] = board[row + move_y][col + move_x]*2;
+                      board[row + move_y][col + move_x] = 0;
 
                       if (board[row][col]*2 > highest) {
                         highest = board[row][col]*2;
@@ -1984,8 +1984,8 @@ void merge(int dir, int highest) {
             for (int col = 0; col < 3; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
+                      board[row][col] = board[row + move_y][col + move_x]*2;
+                      board[row + move_y][col + move_x] = 0;
 
                       if (board[row][col]*2 > highest) {
                         highest = board[row][col]*2;
@@ -2004,8 +2004,8 @@ void merge(int dir, int highest) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
-                      board[row + move_y][col + move_x] = board[row][col]*2;
-                      board[row][col] = 0;
+                      board[row][col] = board[row + move_y][col + move_x]*2;
+                      board[row + move_y][col + move_x] = 0;
 
                       if (board[row][col]*2 > highest) {
                         highest = board[row][col]*2;
@@ -2026,6 +2026,10 @@ void merge(int dir, int highest) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
                       board[row + move_y][col + move_x] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
                     }
                 }
             }
