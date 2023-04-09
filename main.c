@@ -1077,6 +1077,7 @@ int main(void) {
   int delay;
 	int counter;
 	int shift = 0;
+  bool play_again = false;
   
   srand(time(NULL));  
   
@@ -1107,119 +1108,141 @@ int main(void) {
 	
   draw_board();
  
-
-  // game loop
-  while (!game_over) {
-    move_count = 0;
-
-    // randomly generate blocks
-    generate_blocks(highest_num);
-
-    // check if the game is over
-    game_over = check_game_over();
-
-    if (game_over) {
-      win_lose = false;
-      continue;
-    }
-
-    // get user input
-    direction = get_user_input();
-
-    // move blocks
-    while (move_count < 3) {
-      move_blocks(direction);
-      move_count ++;
-    }
-
-    move_count = 0;
-
-    // merge blocks
-    while (move_count < 3) {
-      merge(direction, highest_num);
-      move_count ++;
-    }
-
-    // move blocks
-    move_count = 0;
-    while (move_count < 3) {
-      move_blocks(direction);
-      move_count ++;
-    }
-
-    if (highest_num == 1024) {
-      game_over = true;
-      win_lose = true;
-    } 
-  }
-
-  // end of game
-  
-  // win or lose -> change message on end board
-  
-  // print play time (timer)
-  draw_end();  
-
-  // display score on HEX3-0
-  while (highest_num != 0) {
-		 
-    // get remainder
-    remainder = highest_num % 10;
-  
-    digits[digit_count] = remainder;
-
-    highest_num = highest_num / 10;
-		digit_count++;
-  }
-
-  for (int j = digit_count - 1; j > -1; j--) {
-		message[15-j] = bit_codes[digits[j]];
-	}
-	
-  // display scrolling message for score on HEX displays
   while (1) {
-		counter = 16;
-		shift = 0;
-		
-		pattern = 0;
-		pattern2 = 0;
-		
-		while (counter > 0) {
-			pattern = 0;
-			pattern2 = 0;
-			
-			for (int j = 2; j < 6; j++) {
-				pattern = pattern | (message[j + shift]);
-		
-				if (j < 5) {
-					pattern = pattern << 8;
-				}
-			}
-	
-			*HEX_3_0 = pattern;
-	
-			for (int j = 0; j < 2; j++) {
-				pattern2 = pattern2 | (message[j + shift]);
-		
-				if (j < 1) {
-					pattern2 = pattern2 << 8;
-				}
-			}
-	
-	
-			*HEX_4_5 = pattern2;
-			
-			delay = 800000;
-		
-			while (delay > 0) {
-				delay = delay-1;
-			}
-		
-			shift = shift + 1;
-			counter = counter - 1;
-		}
-	}
+    // game loop
+    while (!game_over) {
+      move_count = 0;
 
+      // randomly generate blocks
+      generate_blocks(highest_num);
+
+      // check if the game is over
+      game_over = check_game_over();
+
+      if (game_over) {
+        win_lose = false;
+        continue;
+      }
+
+      // get user input
+      direction = get_user_input();
+
+      // move blocks
+      while (move_count < 3) {
+        move_blocks(direction);
+        move_count ++;
+      }
+
+      move_count = 0;
+
+      // merge blocks
+      while (move_count < 3) {
+        merge(direction, highest_num);
+        move_count ++;
+      }
+
+      // move blocks
+      move_count = 0;
+      while (move_count < 3) {
+        move_blocks(direction);
+        move_count ++;
+      }
+
+      if (highest_num == 1024) {
+        game_over = true;
+        win_lose = true;
+      } 
+    }
+
+    // end of game
+    
+    // win or lose -> change message on end board
+    
+    // print play time (timer)
+    draw_end();  
+
+    // display score on HEX3-0
+    while (highest_num != 0) {
+      
+      // get remainder
+      remainder = highest_num % 10;
+    
+      digits[digit_count] = remainder;
+
+      highest_num = highest_num / 10;
+      digit_count++;
+    }
+
+    for (int j = digit_count - 1; j > -1; j--) {
+      message[15-j] = bit_codes[digits[j]];
+    }
+
+    volatile int *key_ptr = (int *)0xff200050;
+    //volatile int *key_edge =  (int *)0xff20005c;
+
+    int key = *key_ptr & 0x15;
+    //int edge = *key_edge;
+    int key2 = *key_ptr & 0x15;
+    //check if key is pressed 
+    
+    // display scrolling message for score on HEX displays
+    while (!play_again) {
+      counter = 16;
+      shift = 0;
+      
+      pattern = 0;
+      pattern2 = 0;
+      
+      while (counter > 0) {
+        pattern = 0;
+        pattern2 = 0;
+        
+        for (int j = 2; j < 6; j++) {
+          pattern = pattern | (message[j + shift]);
+      
+          if (j < 5) {
+            pattern = pattern << 8;
+          }
+        }
+    
+        *HEX_3_0 = pattern;
+    
+        for (int j = 0; j < 2; j++) {
+          pattern2 = pattern2 | (message[j + shift]);
+      
+          if (j < 1) {
+            pattern2 = pattern2 << 8;
+          }
+        }
+    
+    
+        *HEX_4_5 = pattern2;
+        
+        delay = 800000;
+      
+        while (delay > 0) {
+          delay = delay-1;
+        }
+      
+        shift = shift + 1;
+        counter = counter - 1;
+
+        key2 = *key_ptr;
+      
+        if (key2 != 0) {
+          key = key2;
+          //wait for key to be released  
+          while(key2 != 0){
+            key2 = *key_ptr;
+          }
+
+          play_again = true;
+          break;
+        }
+      }
+    }
+  }
+  
   return 0;
 }
 
