@@ -33,13 +33,13 @@ void wait_for_vsync();
 void plot_pixel(int x, int y, short int color);
 void generate_blocks();
 void move_blocks(int dir);
-void merge(int dir, int highest_num);
+void merge(int dir);
 void draw_box(int xidx,int yidx, short int color, int size);
 void draw_board();
 void draw_line_horizontal(int xidx,int yidx, short int color, int size);
 void draw_line_vertical(int xidx,int yidx, short int color, int size);
 void draw_instructions();
-void draw_end(int num);
+void draw_end();
 void wait_for_press();
 bool check_game_over();
 void move_animate(int xold, int yold, int xnew, int ynew, int num); // x is column y is row
@@ -1528,10 +1528,11 @@ const int y1 = 95;
 const int y2 = 140;
 const int y3 = 185;
 
+int highest_num = 1;
+
 int main(void) {
   bool game_over = false;
   bool win_lose = false; // true for win, false for lose
-  int highest_num = 1;
   int direction; //3 for up, 2 for down, 1 for left, 0 for right
   int move_count = 0;
   int pattern = 0;
@@ -1578,7 +1579,7 @@ int main(void) {
       move_count = 0;
 
       // randomly generate blocks
-      generate_blocks(highest_num);
+      generate_blocks();
 
       // check if the game is over
       game_over = check_game_over();
@@ -1601,7 +1602,7 @@ int main(void) {
 
       // merge blocks
       while (move_count < 3) {
-        merge(direction, highest_num);
+        merge(direction);
         move_count ++;
       }
 
@@ -1624,7 +1625,7 @@ int main(void) {
     
     // print play time (timer)
 	clear_screen(); 
-    draw_end(highest_num);  
+    draw_end();  
 
     // display score on HEX3-0
     while (highest_num != 0) {
@@ -1834,7 +1835,7 @@ int check_zeros() {
 }
 
 // randomly generate blocks
-void generate_blocks(int highest) {
+void generate_blocks() {
     
     // check where there are zeros
     int count = check_zeros();
@@ -1844,7 +1845,7 @@ void generate_blocks(int highest) {
     int random_two = 0; 
     
     // start of the game, generate 2 1 blocks
-    if (highest == 1) {
+    if (highest_num == 1) {
         while (random_one == random_two) {
             // generate a random number from 0 to count - 1
             random_one = rand() % count; 
@@ -1858,7 +1859,7 @@ void generate_blocks(int highest) {
     else {
         
         // generate a random number from 1 - 2
-        random_one = rand() % (2 - 1) + 1; 
+        random_one = rand() % 2 + 1; 
         
         // generate a random number from 0 to count - 1
         random_two = rand() % count;
@@ -1947,7 +1948,7 @@ void move_blocks(int dir) {
 	draw_board_change();
 }
 
-void merge(int dir, int highest) {
+void merge(int dir) {
     // check if next block is the same number, if it is merge
     // check if merged number is larger than highest number
 
@@ -1966,8 +1967,8 @@ void merge(int dir, int highest) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
                       board[row + move_y][col + move_x] = 0;
 
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
+                      if (board[row][col] > highest_num) {
+                        highest_num = board[row][col];
                       }
                     }
                 }
@@ -1987,8 +1988,8 @@ void merge(int dir, int highest) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
                       board[row + move_y][col + move_x] = 0;
 
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
+                      if (board[row][col] > highest_num) {
+                        highest_num = board[row][col];
                       }
                     }
                 }
@@ -2007,8 +2008,8 @@ void merge(int dir, int highest) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
                       board[row + move_y][col + move_x] = 0;
 
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
+                      if (board[row][col] > highest_num) {
+                        highest_num = board[row][col];
                       }
                     }
                 }
@@ -2027,8 +2028,8 @@ void merge(int dir, int highest) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
                       board[row + move_y][col + move_x] = 0;
 
-                      if (board[row][col]*2 > highest) {
-                        highest = board[row][col]*2;
+                      if (board[row][col] > highest_num) {
+                        highest_num = board[row][col];
                       }
                     }
                 }
@@ -2118,7 +2119,7 @@ void draw_instructions(){
 	}
 }
 
-void draw_end(int num){
+void draw_end(){
 	
     int endIndex = 0;
 	for(int y = 5; y<55; y++){
@@ -2138,7 +2139,7 @@ void draw_end(int num){
 	
 	//print out highest number
 	int boxIndex = 0;
-		if(num == 1){
+		if(highest_num == 1){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, one[boxIndex]);
@@ -2147,7 +2148,7 @@ void draw_end(int num){
 			}
 		}
 		
-		else if(num == 2){
+		else if(highest_num == 2){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, two[boxIndex]);
@@ -2155,7 +2156,7 @@ void draw_end(int num){
 				}
 			}
 		}
-		else if(num == 4){
+		else if(highest_num == 4){
 			for(int y = 70; y<(70+40); y++){
 				for(int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, four[boxIndex]);
@@ -2164,7 +2165,7 @@ void draw_end(int num){
 			}
 		}
 
-		else if(num == 8){
+		else if(highest_num == 8){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, eight[boxIndex]);
@@ -2172,7 +2173,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 16){
+	    else if(highest_num == 16){
 			for(int y = 70; y<(70+40); y++){
 				for(int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, sixteen[boxIndex]);
@@ -2180,7 +2181,7 @@ void draw_end(int num){
 				}
 			}
 		}	
-	    else if(num == 32){
+	    else if(highest_num == 32){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, thirtyTwo[boxIndex]);
@@ -2188,7 +2189,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 64){
+	    else if(highest_num == 64){
 			for(int y = 70; y<(70+40); y++){
 				for(int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, sixtyFour[boxIndex]);
@@ -2196,7 +2197,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 128){
+	    else if(highest_num == 128){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, oneTwoEight[boxIndex]);
@@ -2204,7 +2205,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 256){
+	    else if(highest_num == 256){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, twoFiveSix[boxIndex]);
@@ -2212,7 +2213,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 512){
+	    else if(highest_num == 512){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, fiveOneTwo[boxIndex]);
@@ -2220,7 +2221,7 @@ void draw_end(int num){
 				}
 			}
 		}
-	    else if(num == 1024){
+	    else if(highest_num == 1024){
 			for(int y = 70; y<(70+40); y++){
 				for( int x = 130; x<(130+40); x++){
 					plot_pixel(x, y, oneZeroTwoFour[boxIndex]);
