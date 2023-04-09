@@ -1562,18 +1562,29 @@ int main(void) {
 	
   wait_for_vsync();
 
-   //draw instructions 
+  while (1) {
+
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++) {
+        board[i][j] = 0;
+      }
+    }
+
+    //draw instructions 
     draw_instructions();
 
- //draw_end(8);
-  //wait for user to press any key then draw board 
-  wait_for_press();
+    //draw_end(8);
+    //wait for user to press any key then draw board 
+    wait_for_press();
 	
-  clear_screen();
+    clear_screen();
 	
-  draw_board();
- 
-  while (1) {
+    draw_board();
+
+    game_over = false;
+    play_again = false;
+    highest_num = 1;
+
     // game loop
     while (!game_over) {
       move_count = 0;
@@ -1621,7 +1632,7 @@ int main(void) {
     // win or lose -> change message on end board
     
     // print play time (timer)
-	clear_screen(); 
+	  clear_screen(); 
     draw_end();  
 
     // display score on HEX3-0
