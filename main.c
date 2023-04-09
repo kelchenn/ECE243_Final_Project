@@ -1279,33 +1279,38 @@ bool check_game_over() {
 
 // poll for user input on KEY3-0
 int get_user_input() {
-  volatile int *key_ptr = (int *)0xff200050;
-  //volatile int *key_edge =  (int *)0xff20005c;
+  unsigned char byte1 = 0;
+  unsigned char byte2 = 0;
+  unsigned char byte3 = 0;
 
-  int key = *key_ptr & 0x15;
-  //int edge = *key_edge;
-  int key2 = *key_ptr & 0x15;
-  //check if key is pressed 
-  while (key2 == 0){
-     key2 = *key_ptr;
-  }
-  key = key2;
-  //wait for key to be released  
-  while(key2 != 0){
-    key2 = *key_ptr;
-  }
+  volatile int * PS2_ptr = (int *) 0xFF200100;  // PS/2 port address
 
-  if (key == 1) {
-    return 0;
-  } else if(key ==  2){
-    return 1;
-  }else if(key == 4){
-   return 2;
-  }else if(key == 8){
-   return 3;
-  }
-  else{
-    return 0;
+  int PS2_data, RVALID;
+  bool valid_input = false;
+
+  while (!valid_input) {
+   	PS2_data = *(PS2_ptr);    // read the Data register in the PS/2 port
+   	RVALID = (PS2_data & 0x8000);    // extract the RVALID field
+   	if (RVALID != 0){
+   		/* always save the last three bytes received */
+   		byte1 = byte2;
+   		byte2 = byte3;
+   		byte3 = PS2_data & 0xFF;
+   	}
+   	
+    if ( (byte2 == 0xf0) && (byte3 == 0x75) ) {
+      valid_input = true;
+   		return 0;
+   	} else if ( (byte2 == 0xf0) && (byte3 == 0x72) ) {
+      valid_input = true;
+   		return 1;
+   	} else if ( (byte2 == 0xf0) && (byte3 == 0x6b) ) {
+      valid_input = true;
+   		return 2;
+   	} else if ( (byte2 == 0xf0) && (byte3 == 0x74) ) {
+      valid_input = true;
+   		return 3;
+   	}
   }
 }
 
