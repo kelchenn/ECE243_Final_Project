@@ -15,6 +15,17 @@
 #define PINK 0xFC18
 #define ORANGE 0xFC00
 
+/*Bit codes for HEX displays*/
+const short int bit_codes[10] = {0x3f, 0x6, 0x5b, 0x4f, 
+							   0x66, 0x6d, 0x7d, 0x7, 0x7f, 0x67};
+
+short int message[22] = {0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x6d, 0x39, 
+							   0x3f, 0x50, 0x79, 0x0,
+							   0x3f, 0x3f, 0x3f, 0x3f, 
+							   0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
+
+int digits[4] = {0, 0, 0, 0};
+
 /***Subroutine prototypes***/
 int get_user_input();
 void clear_screen();
@@ -30,10 +41,10 @@ void draw_line_vertical(int xidx,int yidx, short int color, int size);
 void draw_instructions();
 void draw_end();
 void wait_for_press();
+bool check_game_over();
 void move_animate(int xold, int yold, int xnew, int ynew, int num); // x is column y is row
 void draw_board_change();
 void draw_blocks(int yStart, int xStart, int num);
-
 
 /***Global variables***/
 int pixel_buffer_start;
@@ -1059,16 +1070,25 @@ int main(void) {
   bool win_lose = false; // true for win, false for lose
   int highest_num = 1;
   int direction; //3 for up, 2 for down, 1 for left, 0 for right
+  int move_count = 0;
+  int pattern = 0;
+  int pattern2 = 0;
+  int remainder;
+  int digit_count = 0;
+  int delay;
+	int counter;
+	int shift = 0;
   
   srand(time(NULL));  
   
   volatile int *pixel_ctrl_ptr = (int *) 0xFF203020; // DMA
 
+  volatile int *HEX_3_0 = 0xFF200020; // HEX3-0
+  volatile int *HEX_4_5 = 0xFF200030; // HEX4-5
+
   *(pixel_ctrl_ptr + 1) = 0xC8000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 	
-
-
   // swap BackBuffer and Buffer
   wait_for_vsync();
   *(pixel_ctrl_ptr + 1) = 0xC0000000;
@@ -1091,43 +1111,147 @@ int main(void) {
 
   // game loop
   while (!game_over) {
-	 clear_screen();
-	  
-	 draw_board();
-	  
-	 draw_board_change();
+    move_count = 0;
+
     // randomly generate blocks
     generate_blocks(highest_num);
+
+    // check if the game is over
+    game_over = check_game_over();
+
+    if (game_over) {
+      win_lose = false;
+      continue;
+    }
 
     // get user input
     direction = get_user_input();
 
     // move blocks
-    move_blocks(direction);
+    while (move_count < 3) {
+      move_blocks(direction);
+      move_count ++;
+    }
+
+    move_count = 0;
 
     // merge blocks
-    merge(direction, highest_num);
-	  
-	 wait_for_vsync(); // swap front and back buffers on VGA vertical sync
-	 
-	 pixel_buffer_start = *(pixel_ctrl_ptr + 1); // new back buffer
-  
+    while (move_count < 3) {
+      merge(direction, highest_num);
+      move_count ++;
+    }
+
+    // move blocks
+    move_count = 0;
+    while (move_count < 3) {
+      move_blocks(direction);
+      move_count ++;
+    }
+
+    if (highest_num == 1024) {
+      game_over = true;
+      win_lose = true;
+    } 
   }
 
   // end of game
   
-  // win or lose
-  if (win_lose) {
-      
-  } else {
-      
-  }
+  // win or lose -> change message on end board
   
   // print play time (timer)
   draw_end();  
-  printf("%d ", board[0][0]);
+
+  // display score on HEX3-0
+  while (highest_num != 0) {
+		 
+    // get remainder
+    remainder = highest_num % 10;
+  
+    digits[digit_count] = remainder;
+
+    highest_num = highest_num / 10;
+		digit_count++;
+  }
+
+  for (int j = digit_count - 1; j > -1; j--) {
+		message[15-j] = bit_codes[digits[j]];
+	}
 	
+  // display scrolling message for score on HEX displays
+  while (1) {
+		counter = 16;
+		shift = 0;
+		
+		pattern = 0;
+		pattern2 = 0;
+		
+		while (counter > 0) {
+			pattern = 0;
+			pattern2 = 0;
+			
+			for (int j = 2; j < 6; j++) {
+				pattern = pattern | (message[j + shift]);
+		
+				if (j < 5) {
+					pattern = pattern << 8;
+				}
+			}
+	
+			*HEX_3_0 = pattern;
+	
+			for (int j = 0; j < 2; j++) {
+				pattern2 = pattern2 | (message[j + shift]);
+		
+				if (j < 1) {
+					pattern2 = pattern2 << 8;
+				}
+			}
+	
+	
+			*HEX_4_5 = pattern2;
+			
+			delay = 800000;
+		
+			while (delay > 0) {
+				delay = delay-1;
+			}
+		
+			shift = shift + 1;
+			counter = counter - 1;
+		}
+	}
+
   return 0;
+}
+
+bool check_game_over() {
+  // check if the board has any empty spots -> game over is false
+  // check if there are any adjacent same numbers -> game over is false
+  // otherwise game over is true
+
+  for (int i = 0 ; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+
+      if (board[i][j] == 0) {
+          return false;
+      } 
+
+      if (j < 3) {
+        if (board[i][j] == board[i][j+1]) {
+          return false;
+        }
+      }
+
+      if (i < 3) {
+        if (board[i][j] == board[i+1][j]) {
+          return false;
+        }
+      }
+
+    }
+  }
+
+  return true;
 }
 
 // poll for user input on KEY3-0
@@ -1256,7 +1380,7 @@ void move_blocks(int dir) {
         move_y = 0;
         
         for (int row = 0; row < 4; row ++) {
-            for (int col = 0; col < 4; col ++) {
+            for (int col = 0; col < 3; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
                     board[row + move_y][col + move_x] = board[row][col];
@@ -1280,7 +1404,7 @@ void move_blocks(int dir) {
         move_y = 0;
         
         for (int row = 0; row < 4; row ++) {
-            for (int col = 3; col >= 0; col --) {
+            for (int col = 3; col > 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
                        board[row + move_y][col + move_x] = board[row][col];
@@ -1302,7 +1426,7 @@ void move_blocks(int dir) {
         move_x = 0;
         move_y = 1;
         
-        for (int row = 0; row < 4; row ++) {
+        for (int row = 0; row < 3; row ++) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
@@ -1325,7 +1449,7 @@ void move_blocks(int dir) {
         move_x = 0;
         move_y = -1;
         
-        for (int row = 3; row >= 0; row --) {
+        for (int row = 3; row > 0; row --) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
@@ -1353,6 +1477,87 @@ void move_blocks(int dir) {
 void merge(int dir, int highest) {
     // check if next block is the same number, if it is merge
     // check if merged number is larger than highest number
+
+    int move_x;
+    int move_y;
+    
+    // move right
+    if (dir == 0) {
+        move_x = -1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 3; col >= 0; col --) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+  
+    } 
+    // move left
+    else if (dir == 1) {
+        move_x = 1;
+        move_y = 0;
+        
+        for (int row = 0; row < 4; row ++) {
+            for (int col = 0; col < 3; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+    } 
+    // move down
+    else if (dir == 2) {
+        move_x = 0;
+        move_y = -1;
+        
+        for (int row = 3; row > 0; row --) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row + move_y][col + move_x] = board[row][col]*2;
+                      board[row][col] = 0;
+
+                      if (board[row][col]*2 > highest) {
+                        highest = board[row][col]*2;
+                      }
+                    }
+                }
+            }
+        }
+    } 
+    // move up
+    else {
+        move_x = 0;
+        move_y = 1;
+        
+        for (int row = 0; row < 3; row ++) {
+            for (int col = 0; col < 4; col ++) {
+                if (board[row][col] != 0) {
+                    if (board[row][col] == board[row + move_y][col + move_x]) {
+                      board[row][col] = board[row + move_y][col + move_x]*2;
+                      board[row + move_y][col + move_x] = 0;
+                    }
+                }
+            }
+        }
+    }
 }
 
 //draw the box 
