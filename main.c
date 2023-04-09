@@ -1053,6 +1053,7 @@ const short int oneZeroTwoFour[] = {
 
 short int boardColour[175][175];
 int zeros[16][2];
+int board_change[5][16];
 
 const int x0 = 70;
 const int x1 = 115;
@@ -1388,13 +1389,14 @@ void generate_blocks(int highest) {
         
         board[zeros[random_two][0]][zeros[random_two][1]] = random_one;
     } 
+	draw_board_change();
 }
 
 void move_blocks(int dir) {
     
     int move_x;
     int move_y;
-    
+    int column = 0;
     // move right
     if (dir == 0) {
         move_x = 1;
@@ -1404,10 +1406,17 @@ void move_blocks(int dir) {
             for (int col = 0; col < 3; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
-                        board[row + move_y][col + move_x] = board[row][col];
+                    board[row + move_y][col + move_x] = board[row][col];
+						board_change[4][column] = board[row][col];
                         board[row][col] = 0;
+						board_change[0][column]= col;
+						board_change[1][column]= row;
+						board_change[2][column]= col + move_x;
+						board_change[3][column]= row + move_y;
+						
                     }
                 }
+				column++;
             }
         }
   
@@ -1421,10 +1430,17 @@ void move_blocks(int dir) {
             for (int col = 3; col > 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
-                        board[row + move_y][col + move_x] = board[row][col];
+                       board[row + move_y][col + move_x] = board[row][col];
+						board_change[4][column] = board[row][col];
                         board[row][col] = 0;
+						board_change[0][column]= col;
+						board_change[1][column]= row;
+						board_change[2][column]= col + move_x;
+						board_change[3][column]= row + move_y;
+						
                     }
                 }
+				column++;
             }
         }
     } 
@@ -1437,10 +1453,17 @@ void move_blocks(int dir) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
-                        board[row + move_y][col + move_x] = board[row][col];
+                      board[row + move_y][col + move_x] = board[row][col];
+						board_change[4][column] = board[row][col];
                         board[row][col] = 0;
+						board_change[0][column]= col;
+						board_change[1][column]= row;
+						board_change[2][column]= col + move_x;
+						board_change[3][column]= row + move_y;
+						
                     }
                 }
+				column++;
             }
         }
     } 
@@ -1453,13 +1476,25 @@ void move_blocks(int dir) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
-                        board[row + move_y][col + move_x] = board[row][col];
+                     board[row + move_y][col + move_x] = board[row][col];
+						board_change[4][column] = board[row][col];
                         board[row][col] = 0;
+						board_change[0][column]= col;
+						board_change[1][column]= row;
+						board_change[2][column]= col + move_x;
+						board_change[3][column]= row + move_y;
+						
                     }
                 }
+				column++;
             }
         }
     }
+	
+	//for(int col = 0; col<16;col++){
+	      //move_animate(board_change[0][col], board_change[1][col], board_change[2][col], board_change[3][col], board_change[4][col]);
+    //}
+    draw_board_change();
 }
 
 void merge(int dir, int highest) {
@@ -1762,16 +1797,16 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 		
 		
 		if(yStart>yEnd){
-			yStart = yStart - 5;
+			yStart = yStart - 1;
 		}
 		else if(yStart<yEnd){
-			yStart = yStart + 5;
+			yStart = yStart + 1;
 		}
 		if(xStart>xEnd){
-			xStart = xStart - 5;
+			xStart = xStart - 1;
 		}
 		else if(xStart<xEnd){
-			xStart = xStart + 5;
+			xStart = xStart + 1;
 		}
 		
 		if(xStart == xEnd){
@@ -1960,3 +1995,5 @@ void draw_blocks(int yStart, int xStart, int num){
 		}
 		
 }
+	
+
