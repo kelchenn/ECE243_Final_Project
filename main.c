@@ -15,6 +15,12 @@
 #define PINK 0xFC18
 #define ORANGE 0xFC00
 
+/*Bit codes for HEX displays*/
+const short int bit_codes[10] = {0x3f, 0x6, 0x5b, 0x4f, 
+							   0x66, 0x6d, 0x7d, 0x7, 0x7f, 0x67};
+
+int digits[4] = {0, 0, 0, 0};
+
 /***Subroutine prototypes***/
 int get_user_input();
 void clear_screen();
@@ -1059,16 +1065,19 @@ int main(void) {
   int highest_num = 1;
   int direction; //3 for up, 2 for down, 1 for left, 0 for right
   int move_count = 0;
+  int pattern = 0;
+  int remainder;
+  int digit_count = 0;
   
   srand(time(NULL));  
   
   volatile int *pixel_ctrl_ptr = (int *) 0xFF203020; // DMA
 
+  volatile int *HEX_3_0 = 0xFF200020; // HEX3-0
+
   *(pixel_ctrl_ptr + 1) = 0xC8000000;
   pixel_buffer_start = *(pixel_ctrl_ptr + 1);
 	
-
-
   // swap BackBuffer and Buffer
   wait_for_vsync();
   *(pixel_ctrl_ptr + 1) = 0xC0000000;
@@ -1140,6 +1149,29 @@ int main(void) {
   
   // print play time (timer)
   draw_end();  
+
+  // display score on HEX3-0
+  while (highest_num != 0) {
+		 
+    // get remainder
+    remainder = highest_num % 10;
+  
+    digits[digit_count] = remainder;
+
+    highest_num = highest_num / 10;
+		digit_count++;
+  }
+
+  for (int j = digit_count - 1; j > -1; j--) {
+		pattern = pattern | bit_codes[digits[j]];
+		
+		if (j > 0) {
+			pattern = pattern << 8;
+		}
+	}
+	
+  // show score on HEX display
+	*HEX_3_0 = pattern;
 
   return 0;
 }
