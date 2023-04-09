@@ -1384,16 +1384,11 @@ void move_blocks(int dir) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
                     board[row + move_y][col + move_x] = board[row][col];
-						board_change[4][column] = board[row][col];
+						move_animate(col,row, col + move_x, row + move_y, board[row][col]);
                         board[row][col] = 0;
-						board_change[0][column]= col;
-						board_change[1][column]= row;
-						board_change[2][column]= col + move_x;
-						board_change[3][column]= row + move_y;
 						
                     }
                 }
-				column++;
             }
         }
   
@@ -1407,17 +1402,11 @@ void move_blocks(int dir) {
             for (int col = 3; col > 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
+					   move_animate(col,row, col + move_x, row + move_y, board[row][col]);
                        board[row + move_y][col + move_x] = board[row][col];
-						board_change[4][column] = board[row][col];
-                        board[row][col] = 0;
-						board_change[0][column]= col;
-						board_change[1][column]= row;
-						board_change[2][column]= col + move_x;
-						board_change[3][column]= row + move_y;
-						
+                        board[row][col] = 0;						
                     }
                 }
-				column++;
             }
         }
     } 
@@ -1430,17 +1419,11 @@ void move_blocks(int dir) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
+				      move_animate(col,row, col + move_x, row + move_y, board[row][col]);
                       board[row + move_y][col + move_x] = board[row][col];
-						board_change[4][column] = board[row][col];
-                        board[row][col] = 0;
-						board_change[0][column]= col;
-						board_change[1][column]= row;
-						board_change[2][column]= col + move_x;
-						board_change[3][column]= row + move_y;
-						
+                        board[row][col] = 0;						
                     }
                 }
-				column++;
             }
         }
     } 
@@ -1453,25 +1436,16 @@ void move_blocks(int dir) {
             for (int col = 0; col < 4; col ++) {
                 if (board[row][col] != 0) {
                     if (board[row + move_y][col + move_x] == 0) {
+					 move_animate(col,row, col + move_x, row + move_y, board[row][col]);
                      board[row + move_y][col + move_x] = board[row][col];
-						board_change[4][column] = board[row][col];
                         board[row][col] = 0;
-						board_change[0][column]= col;
-						board_change[1][column]= row;
-						board_change[2][column]= col + move_x;
-						board_change[3][column]= row + move_y;
 						
                     }
                 }
-				column++;
             }
         }
     }
-	
-	//for(int col = 0; col<16;col++){
-	      //move_animate(board_change[0][col], board_change[1][col], board_change[2][col], board_change[3][col], board_change[4][col]);
-    //}
-    draw_board_change();
+	draw_board_change();
 }
 
 void merge(int dir, int highest) {
@@ -1558,6 +1532,7 @@ void merge(int dir, int highest) {
             }
         }
     }
+	draw_board_change();
 }
 
 //draw the box 
@@ -1774,16 +1749,16 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 		
 		
 		if(yStart>yEnd){
-			yStart = yStart - 1;
+			yStart = yStart - 5;
 		}
 		else if(yStart<yEnd){
-			yStart = yStart + 1;
+			yStart = yStart + 5;
 		}
 		if(xStart>xEnd){
-			xStart = xStart - 1;
+			xStart = xStart - 5;
 		}
 		else if(xStart<xEnd){
-			xStart = xStart + 1;
+			xStart = xStart + 5;
 		}
 		
 		if(xStart == xEnd){
@@ -1837,13 +1812,6 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 
 void draw_board_change(){
 	int xpos, ypos;
-	//draw the board just greybackground
-	for(int j = y0; j<(y0+175);j++){
-	    for(int i = x0; i<(x0+175);i++){
-			plot_pixel(i, j, boardColour[i-70][j-50]);
-		}
-	}
-	
 	//find position for the blocks and draw the blocks 
 	for(int i =0;i<4; i++){
 		for(int j= 0; j<4; j++){
@@ -1873,7 +1841,18 @@ void draw_board_change(){
 			else if(j == 3){
 				xpos = x3;
 			}
-			draw_blocks(ypos,xpos, num);
+			if(num !=0){
+				draw_blocks(ypos,xpos, num);
+			}
+			else{
+				int boxIndex = 0;
+				for(int y = ypos; y<(ypos+40); y++){
+					for( int x = xpos; x<(xpos+40); x++){
+						plot_pixel(x, y, GREY);
+						boxIndex++;
+					}
+			   }
+			}
 		}
 	}
 }
@@ -1974,3 +1953,5 @@ void draw_blocks(int yStart, int xStart, int num){
 }
 	
 
+
+	
