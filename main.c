@@ -1792,7 +1792,7 @@ int main(void) {
     
         *HEX_4_5 = pattern2;
         
-        delay = 800000;
+        delay = 200000000;
       
         while (delay > 0) {
           delay = delay-1;
@@ -2053,7 +2053,7 @@ void move_blocks(int dir) {
             }
         }
     }
-	draw_board_change();
+	//draw_board_change();
 }
 
 void merge(int dir) {
@@ -2069,7 +2069,7 @@ void merge(int dir) {
         move_y = 0;
         
         for (int row = 0; row < 4; row ++) {
-            for (int col = 3; col >= 0; col --) {
+            for (int col = 3; col > 0; col --) {
                 if (board[row][col] != 0) {
                     if (board[row][col] == board[row + move_y][col + move_x]) {
                       board[row][col] = board[row + move_y][col + move_x]*2;
@@ -2470,16 +2470,16 @@ void move_animate(int xold, int yold, int xnew, int ynew, int num){ //by x y mea
 		
 		
 		if(yStart>yEnd){
-			yStart = yStart - 5;
+			yStart = yStart - 1;
 		}
 		else if(yStart<yEnd){
-			yStart = yStart + 5;
+			yStart = yStart + 1;
 		}
 		if(xStart>xEnd){
-			xStart = xStart - 5;
+			xStart = xStart - 1;
 		}
 		else if(xStart<xEnd){
-			xStart = xStart + 5;
+			xStart = xStart + 1;
 		}
 		
 		if(xStart == xEnd){
